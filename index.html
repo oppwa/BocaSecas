@@ -9,33 +9,19 @@
   html, body { margin:0; padding:0; height:100%; width:100%; background:#000; font-family: Helvetica, Arial, sans-serif; overflow:hidden; }
 
   #topBar {
-    position:fixed; top:0; left:0; right:0; height:44px;
+    position:fixed; top:0; left:0; right:0; height:48px;
     background:#111; display:flex; align-items:center; justify-content:space-between;
-    padding:0 8px; z-index:20;
+    padding:0 10px; z-index:20;
   }
-  #topBar .modes { display:flex; }
   #topBar button, #topBar .modeBtn {
     background:#333; color:#fff; border:1px solid #555; border-radius:6px;
-    padding:6px 10px; font-size:13px; margin-right:4px;
+    padding:8px 12px; font-size:14px;
   }
   .modeBtn.active { background:#0a7a2f; border-color:#0a7a2f; }
 
-  #wrapper {
-    position:fixed; top:44px; left:0; right:0; bottom:0;
-    display:flex; flex-direction:column;
-  }
-
-  #timerRow {
-    flex:0 0 auto;
-    background:#111; color:#fff;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:6px 0 10px 0; border-bottom:2px solid #222;
-  }
-  #timerLabel { font-size:13px; opacity:0.6; margin-bottom:0px; }
-  #timerDisplay { font-size:min(20vw, 140px); font-weight:bold; letter-spacing:1px; line-height:1; }
-
   #mainScreen {
-    flex:1; display:flex; flex-direction:row; min-height:0;
+    position:fixed; top:48px; left:0; right:0; bottom:0;
+    display:flex; flex-direction:row;
   }
   .teamPanel {
     flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -44,50 +30,52 @@
   .teamPanel.left { background:#0d3b66; }
   .teamPanel.right { background:#7a1024; }
   .teamName {
-    font-size:22px; font-weight:bold; margin-bottom:6px; text-transform:uppercase;
+    font-size:24px; font-weight:bold; margin-bottom:6px; text-transform:uppercase;
     max-width:90%; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .score { font-size:min(28vw,150px); font-weight:bold; line-height:1; margin:0; }
-  .golHint { font-size:15px; opacity:0.7; margin-top:6px; }
+  .score {
+    font-size:150px; font-weight:bold; line-height:1; margin:0;
+  }
+  .golHint { font-size:16px; opacity:0.7; margin-top:6px; }
   .minusBtn {
-    position:absolute; bottom:12px; right:12px;
+    position:absolute; bottom:14px; right:14px;
     background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.4);
     border-radius:6px; padding:8px 14px; font-size:14px;
   }
 
-  #centerControls {
-    width:26%; max-width:230px; min-width:150px;
-    background:#0a0a0a; color:#fff; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; padding:8px;
+  #centerPanel {
+    width:30%; max-width:280px; min-width:200px;
+    background:#111; color:#fff; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:10px; position:relative;
   }
-  #waitingLabel { font-size:13px; opacity:0.75; margin-top:10px; text-align:center; }
+  #timerDisplay { font-size:64px; font-weight:bold; letter-spacing:2px; }
+  #timerLabel { font-size:13px; opacity:0.6; margin-bottom:4px; }
+  #waitingLabel { font-size:14px; opacity:0.75; margin-top:10px; text-align:center; }
   .ctrlBtn {
-    margin-top:10px; background:#333; color:#fff; border:1px solid #555; border-radius:8px;
-    padding:14px 10px; font-size:16px; width:100%;
+    margin-top:12px; background:#333; color:#fff; border:1px solid #555; border-radius:8px;
+    padding:12px 18px; font-size:16px; width:80%;
   }
   #btnPause.running { background:#8a1c1c; border-color:#8a1c1c; }
   #btnPause.paused { background:#0a7a2f; border-color:#0a7a2f; }
 
   #overlay {
-    position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9);
+    position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.88);
     color:#fff; display:none; flex-direction:column; align-items:center; justify-content:center;
     z-index:30; text-align:center; padding:20px;
   }
   #overlay.show { display:flex; }
-  #overlayTitle { font-size:38px; font-weight:bold; margin-bottom:16px; }
-  #overlaySub { font-size:20px; opacity:0.9; margin-bottom:26px; }
-  #overlayButtons { display:flex; flex-wrap:wrap; justify-content:center; }
+  #overlayTitle { font-size:40px; font-weight:bold; margin-bottom:20px; }
+  #overlaySub { font-size:20px; opacity:0.85; margin-bottom:30px; }
   .overlayBtn {
     background:#0a7a2f; color:#fff; border:none; border-radius:10px;
-    padding:16px 26px; font-size:20px; margin:6px;
+    padding:18px 30px; font-size:22px; margin:8px;
   }
   .overlayBtn.alt { background:#0d3b66; }
-  .overlayBtn.coin { background:#8a6d1c; }
 
   #settingsPanel {
     position:fixed; top:0; left:0; right:0; bottom:0; background:#0a0a0a; color:#fff;
     display:none; flex-direction:column; align-items:center; justify-content:center;
-    z-index:40; padding:20px; overflow-y:auto;
+    z-index:40; padding:20px;
   }
   #settingsPanel.show { display:flex; }
   #settingsPanel h2 { margin-bottom:14px; }
@@ -99,62 +87,46 @@
     margin-top:20px; background:#0a7a2f; border:none; color:#fff; padding:14px 26px; border-radius:8px; font-size:18px;
   }
 
-  #flashOverlay {
-    position:fixed; inset:0; background:#ff0000; opacity:0; pointer-events:none;
-    z-index:25; transition:opacity 0.15s ease;
-  }
-  #flashOverlay.on { opacity:0.55; }
-
   @media (orientation: portrait) {
-    #timerDisplay { font-size:min(26vw,90px); }
-    .score { font-size:min(30vw,80px); }
-    .teamName { font-size:16px; }
-    #centerControls { min-width:110px; }
-    .ctrlBtn { font-size:13px; padding:10px 6px; }
+    .score { font-size:90px; }
+    #timerDisplay { font-size:44px; }
+    .teamName { font-size:18px; }
   }
 </style>
 </head>
 <body>
 
 <div id="topBar">
-  <div class="modes">
-    <button class="modeBtn" id="btnMode2" onclick="setMode('2')">2 Eq.</button>
-    <button class="modeBtn" id="btnMode3" onclick="setMode('3')">3 Eq.</button>
-    <button class="modeBtn" id="btnMode4" onclick="setMode('4')">4 Eq.</button>
+  <div>
+    <button class="modeBtn" id="btnMode2" onclick="setMode('2')">2 Equipos</button>
+    <button class="modeBtn" id="btnMode3" onclick="setMode('3')">3 Equipos</button>
   </div>
-  <button onclick="openSettings()">Nombres</button>
+  <button onclick="openSettings()">Nombres / Ajustes</button>
 </div>
 
-<div id="wrapper">
-  <div id="timerRow">
+<div id="mainScreen">
+  <div class="teamPanel left" id="panelLeft" onclick="addGoal('left')">
+    <div class="teamName" id="nameLeft">Equipo A</div>
+    <div class="score" id="scoreLeft">0</div>
+    <div class="golHint">Toca para GOL</div>
+    <button class="minusBtn" onclick="event.stopPropagation(); addGoal('left', -1)">-1</button>
+  </div>
+
+  <div id="centerPanel">
     <div id="timerLabel">TIEMPO</div>
     <div id="timerDisplay">10:00</div>
+    <button class="ctrlBtn paused" id="btnPause" onclick="togglePause()">Iniciar</button>
+    <button class="ctrlBtn" onclick="resetTime()">Reiniciar Tiempo</button>
+    <div id="waitingLabel"></div>
   </div>
 
-  <div id="mainScreen">
-    <div class="teamPanel left" id="panelLeft" onclick="addGoal('left')">
-      <div class="teamName" id="nameLeft">Equipo A</div>
-      <div class="score" id="scoreLeft">0</div>
-      <div class="golHint">Toca para GOL</div>
-      <button class="minusBtn" onclick="event.stopPropagation(); addGoal('left', -1)">-1</button>
-    </div>
-
-    <div id="centerControls">
-      <button class="ctrlBtn paused" id="btnPause" onclick="togglePause()">Iniciar</button>
-      <button class="ctrlBtn" onclick="resetTime()">Reiniciar Tiempo</button>
-      <div id="waitingLabel"></div>
-    </div>
-
-    <div class="teamPanel right" id="panelRight" onclick="addGoal('right')">
-      <div class="teamName" id="nameRight">Equipo B</div>
-      <div class="score" id="scoreRight">0</div>
-      <div class="golHint">Toca para GOL</div>
-      <button class="minusBtn" onclick="event.stopPropagation(); addGoal('right', -1)">-1</button>
-    </div>
+  <div class="teamPanel right" id="panelRight" onclick="addGoal('right')">
+    <div class="teamName" id="nameRight">Equipo B</div>
+    <div class="score" id="scoreRight">0</div>
+    <div class="golHint">Toca para GOL</div>
+    <button class="minusBtn" onclick="event.stopPropagation(); addGoal('right', -1)">-1</button>
   </div>
 </div>
-
-<div id="flashOverlay"></div>
 
 <div id="overlay">
   <div id="overlayTitle"></div>
@@ -163,15 +135,13 @@
 </div>
 
 <div id="settingsPanel">
-  <h2>Nombres de equipos</h2>
-  <label>Equipo A</label>
+  <h2>Ajustes</h2>
+  <label>Equipo Izquierda</label>
   <input type="text" id="inputA" />
-  <label>Equipo B</label>
+  <label>Equipo Derecha</label>
   <input type="text" id="inputB" />
-  <label id="labelC">Equipo C</label>
+  <label id="labelC">Equipo en espera (modo 3)</label>
   <input type="text" id="inputC" />
-  <label id="labelD">Equipo D</label>
-  <input type="text" id="inputD" />
   <button class="closeBtn" onclick="saveSettings()">Guardar y Cerrar</button>
 </div>
 
@@ -182,28 +152,23 @@
   var timerInterval = null;
   var running = false;
 
-  var teamNames = { A:'Equipo A', B:'Equipo B', C:'Equipo C', D:'Equipo D' };
-  var playingLeft = 'A', playingRight = 'B';
-  var queue = [];
-
-  var coinCallerSide = null;
-  var coinCallerFace = null;
-  var pendingWinnerSide = null;
-  var flashInterval = null;
+  var teams = { A: 'Equipo A', B: 'Equipo B', C: 'Equipo C' };
+  // en modo 3: left/right son A/B jugando, C espera. Guardamos qué letra está en cada lado.
+  var leftTeamKey = 'A', rightTeamKey = 'B', waitingTeamKey = 'C';
 
   function loadStorage() {
     try {
       var saved = localStorage.getItem('marcadorFutbolData');
       if (saved) {
         var d = JSON.parse(saved);
-        if (d.teamNames) teamNames = d.teamNames;
+        if (d.teams) teams = d.teams;
         if (d.mode) mode = d.mode;
       }
     } catch (e) {}
   }
   function saveStorage() {
     try {
-      localStorage.setItem('marcadorFutbolData', JSON.stringify({ teamNames: teamNames, mode: mode }));
+      localStorage.setItem('marcadorFutbolData', JSON.stringify({ teams: teams, mode: mode }));
     } catch (e) {}
   }
 
@@ -218,40 +183,11 @@
       gain.connect(ctx.destination);
       gain.gain.value = 0.2;
       osc.start();
-      setTimeout(function () { osc.stop(); ctx.close(); }, dur);
+      setTimeout(function () {
+        osc.stop();
+        ctx.close();
+      }, dur);
     } catch (e) {}
-  }
-
-  function whistleTone(duration, f1, f2) {
-    try {
-      var Ctx = window.AudioContext || window.webkitAudioContext;
-      var ctx = new Ctx();
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(f1, ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(f2, ctx.currentTime + duration / 1000);
-      gain.gain.value = 0.25;
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start();
-      setTimeout(function () { osc.stop(); ctx.close(); }, duration);
-    } catch (e) {}
-  }
-  function whistleShort() { whistleTone(180, 1900, 2500); }
-  function whistleLong() { whistleTone(700, 1800, 2900); }
-
-  function startWarningFlash() {
-    if (flashInterval) return;
-    var on = false;
-    var el = document.getElementById('flashOverlay');
-    flashInterval = setInterval(function () {
-      on = !on;
-      el.className = on ? 'on' : '';
-    }, 300);
-  }
-  function stopWarningFlash() {
-    if (flashInterval) { clearInterval(flashInterval); flashInterval = null; }
-    document.getElementById('flashOverlay').className = '';
   }
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -262,24 +198,19 @@
     return pad(m) + ':' + pad(sec);
   }
 
-  function keysForMode(m) {
-    if (m === '2') return ['A', 'B'];
-    if (m === '3') return ['A', 'B', 'C'];
-    return ['A', 'B', 'C', 'D'];
-  }
-
   function renderNames() {
-    document.getElementById('nameLeft').textContent = teamNames[playingLeft];
-    document.getElementById('nameRight').textContent = teamNames[playingRight];
-    document.getElementById('labelC').style.display = (mode === '2') ? 'none' : 'block';
-    document.getElementById('inputC').style.display = (mode === '2') ? 'none' : 'block';
-    document.getElementById('labelD').style.display = (mode === '4') ? 'block' : 'none';
-    document.getElementById('inputD').style.display = (mode === '4') ? 'block' : 'none';
     if (mode === '2') {
+      document.getElementById('nameLeft').textContent = teams.A;
+      document.getElementById('nameRight').textContent = teams.B;
       document.getElementById('waitingLabel').textContent = '';
+      document.getElementById('labelC').style.display = 'none';
+      document.getElementById('inputC').style.display = 'none';
     } else {
-      var names = queue.map(function (k) { return teamNames[k]; });
-      document.getElementById('waitingLabel').textContent = 'Espera: ' + names.join(', ');
+      document.getElementById('nameLeft').textContent = teams[leftTeamKey];
+      document.getElementById('nameRight').textContent = teams[rightTeamKey];
+      document.getElementById('waitingLabel').textContent = 'Espera: ' + teams[waitingTeamKey];
+      document.getElementById('labelC').style.display = 'block';
+      document.getElementById('inputC').style.display = 'block';
     }
   }
 
@@ -294,17 +225,12 @@
 
   function setMode(m) {
     mode = m;
-    var keys = keysForMode(mode);
-    playingLeft = keys[0];
-    playingRight = keys[1];
-    queue = keys.slice(2);
     scoreLeft = 0; scoreRight = 0;
+    leftTeamKey = 'A'; rightTeamKey = 'B'; waitingTeamKey = 'C';
     stopInterval();
-    stopWarningFlash();
-    timerSeconds = (mode === '2') ? 0 : 600;
+    timerSeconds = (mode === '3') ? 600 : 0;
     document.getElementById('btnMode2').className = 'modeBtn' + (mode === '2' ? ' active' : '');
     document.getElementById('btnMode3').className = 'modeBtn' + (mode === '3' ? ' active' : '');
-    document.getElementById('btnMode4').className = 'modeBtn' + (mode === '4' ? ' active' : '');
     renderNames();
     renderScores();
     renderTimer();
@@ -315,37 +241,45 @@
   function setPauseButton(isRunning) {
     running = isRunning;
     var btn = document.getElementById('btnPause');
-    if (running) { btn.textContent = 'Pausar'; btn.className = 'ctrlBtn running'; }
-    else { btn.textContent = 'Iniciar'; btn.className = 'ctrlBtn paused'; }
+    if (running) {
+      btn.textContent = 'Pausar';
+      btn.className = 'ctrlBtn running';
+    } else {
+      btn.textContent = 'Iniciar';
+      btn.className = 'ctrlBtn paused';
+    }
   }
 
   function togglePause() {
-    if (running) { stopInterval(); setPauseButton(false); stopWarningFlash(); }
-    else { startInterval(); setPauseButton(true); }
+    if (running) {
+      stopInterval();
+      setPauseButton(false);
+    } else {
+      startInterval();
+      setPauseButton(true);
+    }
   }
 
-  function startInterval() { stopInterval(); timerInterval = setInterval(tick, 1000); }
-  function stopInterval() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+  function startInterval() {
+    stopInterval();
+    timerInterval = setInterval(tick, 1000);
+  }
+  function stopInterval() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
 
   function tick() {
-    if (mode === '2') { timerSeconds++; }
-    else {
+    if (mode === '2') {
+      timerSeconds++;
+    } else {
       timerSeconds--;
       if (timerSeconds <= 0) {
         timerSeconds = 0;
         stopInterval();
         setPauseButton(false);
         renderTimer();
-        stopWarningFlash();
-        whistleLong();
-        setTimeout(handleTimeUp, 750);
+        handleTimeUp();
         return;
-      }
-      if (timerSeconds <= 10) {
-        startWarningFlash();
-        whistleShort();
-      } else {
-        stopWarningFlash();
       }
     }
     renderTimer();
@@ -354,34 +288,109 @@
   function resetTime() {
     stopInterval();
     setPauseButton(false);
-    stopWarningFlash();
-    timerSeconds = (mode === '2') ? 0 : 600;
+    timerSeconds = (mode === '3') ? 600 : 0;
     renderTimer();
   }
 
   function addGoal(side, delta) {
     if (delta === undefined) delta = 1;
-    if (side === 'left') scoreLeft = Math.max(0, scoreLeft + delta);
-    else scoreRight = Math.max(0, scoreRight + delta);
+    if (side === 'left') {
+      scoreLeft = Math.max(0, scoreLeft + delta);
+    } else {
+      scoreRight = Math.max(0, scoreRight + delta);
+    }
     renderScores();
     if (delta > 0) beep(880, 150);
 
-    var threshold = (mode === '2') ? 3 : 2;
-    if (scoreLeft >= threshold) return showRoundWinOverlay('left');
-    if (scoreRight >= threshold) return showRoundWinOverlay('right');
+    if (mode === '2') {
+      if (scoreLeft >= 3) return showRoundWinOverlay('left');
+      if (scoreRight >= 3) return showRoundWinOverlay('right');
+    } else {
+      if (scoreLeft >= 2) return showRoundWinOverlay('left');
+      if (scoreRight >= 2) return showRoundWinOverlay('right');
+    }
   }
-
-  function hideOverlay() { document.getElementById('overlay').className = ''; }
 
   function showRoundWinOverlay(side) {
     stopInterval();
     setPauseButton(false);
-    stopWarningFlash();
-    var winnerName = side === 'left' ? teamNames[playingLeft] : teamNames[playingRight];
+    var winnerName = side === 'left' ? document.getElementById('nameLeft').textContent : document.getElementById('nameRight').textContent;
     document.getElementById('overlayTitle').textContent = winnerName + ' GANA';
     var sub = 'Toca para el siguiente minipartido';
-    if (mode !== '2' && queue.length > 0) {
-      sub = 'Entra: ' + teamNames[queue[0]];
+    if (mode === '3') {
+      var enteringKey = waitingTeamKey;
+      sub = 'Entra: ' + teams[enteringKey];
     }
     document.getElementById('overlaySub').textContent = sub;
-    document.getElementById('overlayButtons').innerHTML = '<button class="overlayBtn" onclick="confirmNextRound(\'' + side +
+    document.getElementById('overlayButtons').innerHTML = '<button class="overlayBtn" onclick="confirmNextRound(\'' + side + '\')">Continuar</button>';
+    document.getElementById('overlay').className = 'show';
+  }
+
+  function handleTimeUp() {
+    if (scoreLeft === scoreRight) {
+      document.getElementById('overlayTitle').textContent = 'TIEMPO TERMINADO';
+      document.getElementById('overlaySub').textContent = 'Empate ' + scoreLeft + '-' + scoreRight + '. Elige quién se queda:';
+      document.getElementById('overlayButtons').innerHTML =
+        '<button class="overlayBtn alt" onclick="confirmNextRound(\'left\')">' + document.getElementById('nameLeft').textContent + ' se queda</button>' +
+        '<button class="overlayBtn alt" onclick="confirmNextRound(\'right\')">' + document.getElementById('nameRight').textContent + ' se queda</button>';
+      document.getElementById('overlay').className = 'show';
+    } else {
+      var winnerSide = scoreLeft > scoreRight ? 'left' : 'right';
+      showRoundWinOverlay(winnerSide);
+    }
+  }
+
+  function confirmNextRound(winnerSide) {
+    document.getElementById('overlay').className = '';
+    if (mode === '2') {
+      scoreLeft = 0; scoreRight = 0;
+      renderScores();
+      return;
+    }
+    // modo 3: el ganador se queda, el perdedor sale, entra el que esperaba
+    if (winnerSide === 'left') {
+      waitingTeamKey = rightTeamKey;
+      rightTeamKey = null;
+    } else {
+      waitingTeamKey = leftTeamKey;
+      leftTeamKey = null;
+    }
+    var entering = null;
+    // el que entra es el que estaba esperando ANTES de este cambio; lo guardamos aparte
+    // recomputamos: buscamos la llave que no está en left/right actuales ni en waitingTeamKey recién asignado
+    var allKeys = ['A', 'B', 'C'];
+    var used = [leftTeamKey, rightTeamKey, waitingTeamKey].filter(function (k) { return k; });
+    for (var i = 0; i < allKeys.length; i++) {
+      if (used.indexOf(allKeys[i]) === -1) { entering = allKeys[i]; break; }
+    }
+    if (winnerSide === 'left') { rightTeamKey = entering; } else { leftTeamKey = entering; }
+
+    scoreLeft = 0; scoreRight = 0;
+    timerSeconds = 600;
+    renderNames();
+    renderScores();
+    renderTimer();
+    setPauseButton(false);
+  }
+
+  function openSettings() {
+    document.getElementById('inputA').value = teams.A;
+    document.getElementById('inputB').value = teams.B;
+    document.getElementById('inputC').value = teams.C;
+    document.getElementById('settingsPanel').className = 'show';
+  }
+  function saveSettings() {
+    teams.A = document.getElementById('inputA').value || teams.A;
+    teams.B = document.getElementById('inputB').value || teams.B;
+    teams.C = document.getElementById('inputC').value || teams.C;
+    document.getElementById('settingsPanel').className = '';
+    renderNames();
+    saveStorage();
+  }
+
+  // init
+  loadStorage();
+  setMode(mode);
+</script>
+</body>
+</html>
