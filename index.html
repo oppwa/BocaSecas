@@ -35,7 +35,7 @@
     border-bottom:2px solid #222;
   }
   #timerLabel { font-size:16px; opacity:0.6; margin-bottom:4px; letter-spacing:3px; }
-  #timerDisplay { font-size:min(36vw, 42vh); font-weight:bold; letter-spacing:1px; line-height:1; }
+  #timerDisplay { font-size:30vw; font-weight:bold; letter-spacing:1px; line-height:1; }
 
   #mainScreen {
     flex:1; display:flex; flex-direction:row; min-height:0;
@@ -50,7 +50,7 @@
     font-size:22px; font-weight:bold; margin-bottom:6px; text-transform:uppercase;
     max-width:90%; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .score { font-size:min(28vw,150px); font-weight:bold; line-height:1; margin:0; }
+  .score { font-size:18vw; font-weight:bold; line-height:1; margin:0; }
   .golHint { font-size:15px; opacity:0.7; margin-top:6px; }
   .minusBtn {
     position:absolute; bottom:12px; right:12px;
@@ -103,14 +103,14 @@
   }
 
   #flashOverlay {
-    position:fixed; inset:0; background:#ff0000; opacity:0; pointer-events:none;
+    position:fixed; top:0; left:0; right:0; bottom:0; background:#ff0000; opacity:0; pointer-events:none;
     z-index:25; transition:opacity 0.15s ease;
   }
   #flashOverlay.on { opacity:0.55; }
 
   @media (orientation: portrait) {
-    #timerDisplay { font-size:min(40vw,32vh); }
-    .score { font-size:min(30vw,80px); }
+    #timerDisplay { font-size:26vh; }
+    .score { font-size:14vh; }
     .teamName { font-size:16px; }
     #centerControls { min-width:110px; }
     .ctrlBtn { font-size:13px; padding:10px 6px; }
