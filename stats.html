@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jugadores y Estadísticas</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin:0; font-family: -apple-system, Helvetica, Arial, sans-serif;
+    background:#0a0a0f; color:#fff; min-height:100vh;
+  }
+  header {
+    background:linear-gradient(135deg,#0d3b66,#7a1024);
+    padding:16px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:10; box-shadow:0 2px 12px rgba(0,0,0,0.6);
+  }
+  header h1 { margin:0; font-size:20px; }
+  header a {
+    color:#fff; text-decoration:none; background:rgba(255,255,255,0.15);
+    padding:8px 14px; border-radius:8px; font-size:14px; border:1px solid rgba(255,255,255,0.3);
+  }
+  .tabs {
+    display:flex; background:#15151c; border-bottom:1px solid #222;
+    position:sticky; top:60px; z-index:9;
+  }
+  .tab {
+    flex:1; padding:14px; text-align:center; cursor:pointer; font-size:14px;
+    color:#888; border-bottom:3px solid transparent; font-weight:600;
+  }
+  .tab.active { color:#fff; border-bottom-color:#0a7a2f; background:#1a1a22; }
+
+  .container { padding:16px; max-width:900px; margin:0 auto; }
+
+  /* Formulario nuevo jugador */
+  .formRow { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .formRow input, .formRow select {
+    padding:12px; font-size:16px; border-radius:8px; border:1px solid #333;
+    background:#15151c; color:#fff; flex:1; min-width:100px;
+  }
+  .formRow input#pNumber { max-width:90px; }
+  .btn {
+    background:#0a7a2f; color:#fff; border:none; border-radius:8px;
+   
