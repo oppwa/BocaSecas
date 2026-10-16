@@ -41,4 +41,383 @@
   .formRow input#pNumber { max-width:90px; }
   .btn {
     background:#0a7a2f; color:#fff; border:none; border-radius:8px;
-   
+    padding:12px 20px; font-size:16px; cursor:pointer; font-weight:600;
+  }
+  .btn:active { transform:scale(0.97); }
+  .btn.danger { background:#8a1c1c; }
+  .btn.ghost { background:#333; }
+  .btn.small { padding:6px 12px; font-size:13px; }
+
+  /* Tabla jugadores */
+  table {
+    width:100%; border-collapse:collapse; background:#15151c;
+    border-radius:12px; overflow:hidden;
+  }
+  th, td { padding:12px; text-align:left; border-bottom:1px solid #222; }
+  th { background:#1a1a22; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#888; }
+  tr:last-child td { border-bottom:none; }
+  .numCol { color:#ffd700; font-weight:bold; width:60px; }
+  .golCol { text-align:center; font-weight:bold; color:#0a7a2f; width:70px; }
+  .actionsCol { width:80px; text-align:right; }
+
+  /* Dashboard cards */
+  .dashGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:22px; }
+  .card {
+    background:linear-gradient(135deg,#15151c,#1e1e28);
+    border:1px solid #2a2a35; border-radius:14px; padding:18px;
+    position:relative; overflow:hidden;
+  }
+  .card .label { font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+  .card .value { font-size:34px; font-weight:bold; }
+  .card .sub { font-size:13px; color:#aaa; margin-top:6px; }
+  .card.gold { border-color:#8a6d1c; background:linear-gradient(135deg,#2a2208,#1a1505); }
+  .card.gold .value { color:#ffd700; }
+  .card.green { border-color:#0a7a2f; }
+  .card.green .value { color:#3ddc84; }
+
+  /* Ranking */
+  .ranking { background:#15151c; border-radius:14px; padding:16px; margin-bottom:22px; }
+  .ranking h3 { margin:0 0 14px 0; font-size:16px; }
+  .rankRow {
+    display:flex; align-items:center; gap:12px; padding:10px 0;
+    border-bottom:1px solid #222;
+  }
+  .rankRow:last-child { border-bottom:none; }
+  .rankPos {
+    width:32px; height:32px; border-radius:50%; background:#333;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:bold; font-size:14px; flex-shrink:0;
+  }
+  .rankPos.p1 { background:linear-gradient(135deg,#ffd700,#c9a000); color:#000; }
+  .rankPos.p2 { background:linear-gradient(135deg,#c0c0c0,#888); color:#000; }
+  .rankPos.p3 { background:linear-gradient(135deg,#cd7f32,#8b5a2b); color:#fff; }
+  .rankInfo { flex:1; min-width:0; }
+  .rankName { font-weight:600; font-size:15px; }
+  .rankTeam { font-size:12px; color:#888; }
+  .rankGoals { font-size:20px; font-weight:bold; color:#3ddc84; }
+
+  .emptyState { text-align:center; padding:40px 20px; color:#666; }
+  .emptyState .icon { font-size:48px; margin-bottom:12px; }
+
+  /* Filtros dashboard */
+  .filterRow { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .filterRow button {
+    background:#1a1a22; color:#aaa; border:1px solid #333; border-radius:8px;
+    padding:8px 14px; font-size:13px; cursor:pointer;
+  }
+  .filterRow button.active { background:#0a7a2f; color:#fff; border-color:#0a7a2f; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📊 Jugadores</h1>
+  <a href="index.html">← Marcador</a>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="players" onclick="switchTab('players')">👥 Jugadores</div>
+  <div class="tab" data-tab="dashboard" onclick="switchTab('dashboard')">🏆 Dashboard</div>
+  <div class="tab" data-tab="history" onclick="switchTab('history')">📜 Historial</div>
+</div>
+
+<!-- TAB: JUGADORES -->
+<div class="container" id="tabPlayers">
+  <div class="formRow">
+    <input type="number" id="pNumber" placeholder="#" min="0" max="999">
+    <input type="text" id="pName" placeholder="Nombre o apodo">
+    <select id="pTeam">
+      <option value="">Sin equipo</option>
+      <option value="A">Equipo A</option>
+      <option value="B">Equipo B</option>
+      <option value="C">Equipo C</option>
+      <option value="D">Equipo D</option>
+    </select>
+    <button class="btn" onclick="addPlayer()">+ Agregar</button>
+  </div>
+
+  <div id="playersList"></div>
+</div>
+
+<!-- TAB: DASHBOARD -->
+<div class="container" id="tabDashboard" style="display:none;">
+  <div class="filterRow">
+    <button class="active" data-filter="today" onclick="setFilter('today')">Hoy</button>
+    <button data-filter="week" onclick="setFilter('week')">Semana</button>
+    <button data-filter="month" onclick="setFilter('month')">Mes</button>
+    <button data-filter="all" onclick="setFilter('all')">Todo</button>
+  </div>
+  <div id="dashboardContent"></div>
+</div>
+
+<!-- TAB: HISTORIAL -->
+<div class="container" id="tabHistory" style="display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+    <div style="color:#888; font-size:14px;" id="historyCount"></div>
+    <button class="btn danger small" onclick="clearHistory()">🗑 Borrar historial</button>
+  </div>
+  <div id="historyList"></div>
+</div>
+
+<script>
+  // ====== STORAGE ======
+  var PLAYERS_KEY = 'marcadorPlayers';
+  var GOALS_KEY = 'marcadorGoalsHistory';
+
+  function loadPlayers() {
+    try { return JSON.parse(localStorage.getItem(PLAYERS_KEY) || '[]'); }
+    catch(e) { return []; }
+  }
+  function savePlayers(p) {
+    localStorage.setItem(PLAYERS_KEY, JSON.stringify(p));
+  }
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(GOALS_KEY) || '[]'); }
+    catch(e) { return []; }
+  }
+  function saveHistory(h) {
+    localStorage.setItem(GOALS_KEY, JSON.stringify(h));
+  }
+
+  // ====== TABS ======
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(function(t){
+      t.classList.toggle('active', t.dataset.tab === name);
+    });
+    document.getElementById('tabPlayers').style.display = name === 'players' ? 'block' : 'none';
+    document.getElementById('tabDashboard').style.display = name === 'dashboard' ? 'block' : 'none';
+    document.getElementById('tabHistory').style.display = name === 'history' ? 'block' : 'none';
+    if (name === 'dashboard') renderDashboard();
+    if (name === 'history') renderHistory();
+  }
+
+  // ====== JUGADORES ======
+  function addPlayer() {
+    var num = document.getElementById('pNumber').value.trim();
+    var name = document.getElementById('pName').value.trim();
+    var team = document.getElementById('pTeam').value;
+    if (!num || !name) { alert('Completa número y nombre'); return; }
+    var players = loadPlayers();
+    if (players.some(function(p){ return String(p.number) === String(num); })) {
+      alert('Ya existe un jugador con ese número'); return;
+    }
+    players.push({
+      id: 'p_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+      number: parseInt(num, 10),
+      name: name,
+      team: team
+    });
+    players.sort(function(a,b){ return a.number - b.number; });
+    savePlayers(players);
+    document.getElementById('pNumber').value = '';
+    document.getElementById('pName').value = '';
+    document.getElementById('pTeam').value = '';
+    renderPlayers();
+  }
+
+  function deletePlayer(id) {
+    if (!confirm('¿Eliminar este jugador? Sus goles se conservan en el historial.')) return;
+    var players = loadPlayers().filter(function(p){ return p.id !== id; });
+    savePlayers(players);
+    renderPlayers();
+  }
+
+  function editPlayer(id) {
+    var players = loadPlayers();
+    var p = players.find(function(x){ return x.id === id; });
+    if (!p) return;
+    var newNum = prompt('Número:', p.number);
+    if (newNum === null) return;
+    var newName = prompt('Nombre o apodo:', p.name);
+    if (newName === null) return;
+    var newTeam = prompt('Equipo (A/B/C/D o vacío):', p.team || '');
+    if (newTeam === null) return;
+    p.number = parseInt(newNum, 10) || p.number;
+    p.name = newName.trim() || p.name;
+    p.team = (newTeam || '').toUpperCase();
+    players.sort(function(a,b){ return a.number - b.number; });
+    savePlayers(players);
+    renderPlayers();
+  }
+
+  function renderPlayers() {
+    var players = loadPlayers();
+    var history = loadHistory();
+    var goalsByPlayer = {};
+    history.forEach(function(g){
+      goalsByPlayer[g.playerId] = (goalsByPlayer[g.playerId] || 0) + 1;
+    });
+
+    var container = document.getElementById('playersList');
+    if (players.length === 0) {
+      container.innerHTML =
+        '<div class="emptyState"><div class="icon">👥</div>' +
+        '<div>No hay jugadores. Agrega el primero arriba.</div></div>';
+      return;
+    }
+    var html = '<table><thead><tr>' +
+      '<th class="numCol">#</th><th>Nombre</th><th>Equipo</th>' +
+      '<th class="golCol">⚽</th><th class="actionsCol"></th>' +
+      '</tr></thead><tbody>';
+    players.forEach(function(p){
+      html += '<tr>' +
+        '<td class="numCol">' + p.number + '</td>' +
+        '<td><strong>' + escapeHtml(p.name) + '</strong></td>' +
+        '<td style="color:#888;font-size:13px;">' + (p.team ? 'Equipo ' + p.team : '—') + '</td>' +
+        '<td class="golCol">' + (goalsByPlayer[p.id] || 0) + '</td>' +
+        '<td class="actionsCol">' +
+          '<button class="btn ghost small" onclick="editPlayer(\'' + p.id + '\')">✏</button> ' +
+          '<button class="btn danger small" onclick="deletePlayer(\'' + p.id + '\')">🗑</button>' +
+        '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  // ====== DASHBOARD ======
+  var currentFilter = 'today';
+
+  function setFilter(f) {
+    currentFilter = f;
+    document.querySelectorAll('.filterRow button').forEach(function(b){
+      b.classList.toggle('active', b.dataset.filter === f);
+    });
+    renderDashboard();
+  }
+
+  function filterHistory(history, filter) {
+    var now = new Date();
+    return history.filter(function(g){
+      var d = new Date(g.date);
+      if (filter === 'all') return true;
+      if (filter === 'today') {
+        return d.toDateString() === now.toDateString();
+      }
+      if (filter === 'week') {
+        var weekAgo = new Date(now.getTime() - 7*24*60*60*1000);
+        return d >= weekAgo;
+      }
+      if (filter === 'month') {
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      }
+      return true;
+    });
+  }
+
+  function renderDashboard() {
+    var history = filterHistory(loadHistory(), currentFilter);
+    var container = document.getElementById('dashboardContent');
+
+    if (history.length === 0) {
+      container.innerHTML =
+        '<div class="emptyState"><div class="icon">🏆</div>' +
+        '<div>Sin goles registrados en este período.</div>' +
+        '<div style="font-size:13px;margin-top:8px;">Registra goles desde el marcador con el botón ⚽ Goleador</div></div>';
+      return;
+    }
+
+    // Agrupar por jugador
+    var byPlayer = {};
+    var totalGoals = 0;
+    history.forEach(function(g){
+      if (!byPlayer[g.playerId]) {
+        byPlayer[g.playerId] = {
+          id: g.playerId, name: g.playerName, number: g.playerNumber,
+          team: g.team || '', goals: 0
+        };
+      }
+      byPlayer[g.playerId].goals++;
+      totalGoals++;
+    });
+    var ranking = Object.values(byPlayer).sort(function(a,b){ return b.goals - a.goals; });
+
+    var top = ranking[0] || { name: '—', goals: 0 };
+    var uniquePlayers = ranking.length;
+    var avg = uniquePlayers ? (totalGoals / uniquePlayers).toFixed(1) : 0;
+
+    // Equipo top
+    var byTeam = {};
+    history.forEach(function(g){
+      if (g.team) byTeam[g.team] = (byTeam[g.team] || 0) + 1;
+    });
+    var teamTop = Object.entries(byTeam).sort(function(a,b){ return b[1]-a[1]; })[0];
+
+    var html = '<div class="dashGrid">' +
+      '<div class="card gold"><div class="label">🔥 Más goles</div>' +
+        '<div class="value">' + top.goals + '</div>' +
+        '<div class="sub">' + (top.number ? '#' + top.number + ' ' : '') + escapeHtml(top.name) + '</div></div>' +
+      '<div class="card green"><div class="label">Total goles</div>' +
+        '<div class="value">' + totalGoals + '</div>' +
+        '<div class="sub">en el período</div></div>' +
+      '<div class="card"><div class="label">Goleadores</div>' +
+        '<div class="value">' + uniquePlayers + '</div>' +
+        '<div class="sub">promedio ' + avg + ' goles</div></div>' +
+      (teamTop ? '<div class="card"><div class="label">Equipo top</div>' +
+        '<div class="value">' + teamTop[1] + '</div>' +
+        '<div class="sub">Equipo ' + teamTop[0] + '</div></div>' : '') +
+      '</div>';
+
+    // Ranking completo
+    html += '<div class="ranking"><h3>🏅 Ranking de goleadores</h3>';
+    ranking.forEach(function(p, i){
+      var posClass = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
+      html += '<div class="rankRow">' +
+        '<div class="rankPos ' + posClass + '">' + (i+1) + '</div>' +
+        '<div class="rankInfo">' +
+          '<div class="rankName">' + (p.number ? '#' + p.number + ' ' : '') + escapeHtml(p.name) + '</div>' +
+          '<div class="rankTeam">' + (p.team ? 'Equipo ' + p.team : 'Sin equipo') + '</div>' +
+        '</div>' +
+        '<div class="rankGoals">' + p.goals + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+  }
+
+  // ====== HISTORIAL ======
+  function renderHistory() {
+    var history = loadHistory().slice().reverse();
+    document.getElementById('historyCount').textContent = history.length + ' goles registrados';
+    var container = document.getElementById('historyList');
+    if (history.length === 0) {
+      container.innerHTML = '<div class="emptyState"><div class="icon">📜</div><div>Sin registros</div></div>';
+      return;
+    }
+    var html = '<table><thead><tr><th>Jugador</th><th>Fecha</th></tr></thead><tbody>';
+    history.slice(0, 100).forEach(function(g){
+      var d = new Date(g.date);
+      var dateStr = d.toLocaleDateString('es', {day:'2-digit', month:'2-digit', year:'2-digit'}) +
+                    ' ' + d.toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'});
+      html += '<tr>' +
+        '<td>' + (g.playerNumber ? '#' + g.playerNumber + ' ' : '') + escapeHtml(g.playerName) +
+          (g.team ? ' <span style="color:#888;font-size:12px;">(Eq. ' + g.team + ')</span>' : '') + '</td>' +
+        '<td style="color:#888;font-size:13px;">' + dateStr + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    if (history.length > 100) {
+      html += '<div style="text-align:center;color:#666;padding:14px;font-size:13px;">Mostrando últimos 100 de ' + history.length + '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function clearHistory() {
+    if (!confirm('¿Borrar TODO el historial de goles? Esta acción no se puede deshacer.')) return;
+    saveHistory([]);
+    renderHistory();
+  }
+
+  // ====== UTIL ======
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  // ====== INIT ======
+  renderPlayers();
+</script>
+</body>
+</html>
