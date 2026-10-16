@@ -22,6 +22,7 @@
     padding:6px 10px; font-size:13px; margin-right:4px;
   }
   .modeBtn.active { background:#0a7a2f; border-color:#0a7a2f; }
+  #statsLink { background:#0d3b66; border-color:#0d3b66; text-decoration:none; }
 
   #wrapper {
     position:fixed; top:44px; left:0; right:0; bottom:0;
@@ -37,9 +38,7 @@
   #timerLabel { font-size:16px; opacity:0.6; margin-bottom:4px; letter-spacing:3px; }
   #timerDisplay { font-size:30vw; font-weight:bold; letter-spacing:1px; line-height:1; }
 
-  #mainScreen {
-    flex:1; display:flex; flex-direction:row; min-height:0;
-  }
+  #mainScreen { flex:1; display:flex; flex-direction:row; min-height:0; }
   .teamPanel {
     flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
     position:relative; color:#fff;
@@ -55,6 +54,11 @@
   .minusBtn {
     position:absolute; bottom:12px; right:12px;
     background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.4);
+    border-radius:6px; padding:8px 14px; font-size:14px;
+  }
+  .scorerBtn {
+    position:absolute; bottom:12px; left:12px;
+    background:rgba(255,215,0,0.25); color:#fff; border:1px solid rgba(255,215,0,0.6);
     border-radius:6px; padding:8px 14px; font-size:14px;
   }
 
@@ -108,6 +112,26 @@
   }
   #flashOverlay.on { opacity:0.55; }
 
+  /* Selector de goleador */
+  #scorerPanel {
+    position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.92);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    z-index:35; padding:20px; overflow-y:auto;
+  }
+  #scorerPanel.show { display:flex; }
+  #scorerPanel h2 { color:#fff; margin:0 0 16px 0; font-size:22px; }
+  #scorerList { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; max-width:600px; }
+  .scorerChip {
+    background:#1a1a1a; color:#fff; border:2px solid #444; border-radius:30px;
+    padding:12px 20px; font-size:17px; cursor:pointer;
+  }
+  .scorerChip:active { background:#0a7a2f; border-color:#0a7a2f; }
+  .scorerChip .num { color:#ffd700; font-weight:bold; margin-right:6px; }
+  .scorerCancel {
+    margin-top:22px; background:#333; color:#fff; border:none; border-radius:8px;
+    padding:12px 24px; font-size:16px;
+  }
+
   @media (orientation: portrait) {
     #timerDisplay { font-size:26vh; }
     .score { font-size:14vh; }
@@ -125,7 +149,10 @@
     <button class="modeBtn" id="btnMode3" onclick="setMode('3')">3 Eq.</button>
     <button class="modeBtn" id="btnMode4" onclick="setMode('4')">4 Eq.</button>
   </div>
-  <button onclick="openSettings()">Nombres</button>
+  <div>
+    <a href="stats.html" id="statsLink" style="display:inline-block; padding:6px 10px; color:#fff; border:1px solid #0d3b66; border-radius:6px; font-size:13px; text-decoration:none; margin-right:4px;">📊 Jugadores</a>
+    <button onclick="openSettings()">Nombres</button>
+  </div>
 </div>
 
 <div id="wrapper">
@@ -135,11 +162,12 @@
   </div>
 
   <div id="mainScreen">
-    <div class="teamPanel left" id="panelLeft" onclick="addGoal('left')">
+    <div class="teamPanel left" id="panelLeft">
       <div class="teamName" id="nameLeft">Equipo A</div>
       <div class="score" id="scoreLeft">0</div>
-      <div class="golHint">Toca para GOL</div>
-      <button class="minusBtn" onclick="event.stopPropagation(); addGoal('left', -1)">-1</button>
+      <div class="golHint" onclick="addGoal('left')">Toca para GOL</div>
+      <button class="scorerBtn" onclick="openScorer('left')">⚽ Goleador</button>
+      <button class="minusBtn" onclick="addGoal('left', -1)">-1</button>
     </div>
 
     <div id="centerControls">
@@ -148,11 +176,12 @@
       <div id="waitingLabel"></div>
     </div>
 
-    <div class="teamPanel right" id="panelRight" onclick="addGoal('right')">
+    <div class="teamPanel right" id="panelRight">
       <div class="teamName" id="nameRight">Equipo B</div>
       <div class="score" id="scoreRight">0</div>
-      <div class="golHint">Toca para GOL</div>
-      <button class="minusBtn" onclick="event.stopPropagation(); addGoal('right', -1)">-1</button>
+      <div class="golHint" onclick="addGoal('right')">Toca para GOL</div>
+      <button class="scorerBtn" onclick="openScorer('right')">⚽ Goleador</button>
+      <button class="minusBtn" onclick="addGoal('right', -1)">-1</button>
     </div>
   </div>
 </div>
@@ -178,6 +207,12 @@
   <button class="closeBtn" onclick="saveSettings()">Guardar y Cerrar</button>
 </div>
 
+<div id="scorerPanel">
+  <h2 id="scorerTitle">¿Quién metió el gol?</h2>
+  <div id="scorerList"></div>
+  <button class="scorerCancel" onclick="closeScorer()">Cancelar</button>
+</div>
+
 <script>
   var mode = '2';
   var scoreLeft = 0, scoreRight = 0;
@@ -193,7 +228,79 @@
   var coinCallerFace = null;
   var pendingWinnerSide = null;
   var flashInterval = null;
+  var coinFlipping = false;
 
+  // ====== AUDIO GLOBAL ======
+  var globalAudioCtx = null;
+  function getAudioCtx() {
+    if (!globalAudioCtx) {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) globalAudioCtx = new Ctx();
+    }
+    if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+      globalAudioCtx.resume();
+    }
+    return globalAudioCtx;
+  }
+  function beep(freq, dur) {
+    try {
+      var ctx = getAudioCtx(); if (!ctx) return;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.frequency.value = freq;
+      osc.connect(gain); gain.connect(ctx.destination);
+      gain.gain.value = 0.2;
+      osc.start();
+      setTimeout(function(){ osc.stop(); }, dur);
+    } catch (e) {}
+  }
+  function whistleTone(duration, f1, f2) {
+    try {
+      var ctx = getAudioCtx(); if (!ctx) return;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(f1, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(f2, ctx.currentTime + duration / 1000);
+      gain.gain.value = 0.25;
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start();
+      setTimeout(function(){ osc.stop(); }, duration);
+    } catch (e) {}
+  }
+  function whistleShort() { whistleTone(180, 1900, 2500); }
+  function whistleLong()  { whistleTone(700, 1800, 2900); }
+
+  // ====== FLASH ======
+  function startWarningFlash() {
+    if (flashInterval) return;
+    var on = false;
+    var el = document.getElementById('flashOverlay');
+    flashInterval = setInterval(function () {
+      on = !on;
+      el.className = on ? 'on' : '';
+    }, 300);
+  }
+  function stopWarningFlash() {
+    if (flashInterval) { clearInterval(flashInterval); flashInterval = null; }
+    document.getElementById('flashOverlay').className = '';
+  }
+
+  // ====== UTIL ======
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function formatTime(s) {
+    if (s < 0) s = 0;
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    return pad(m) + ':' + pad(sec);
+  }
+  function keysForMode(m) {
+    if (m === '2') return ['A', 'B'];
+    if (m === '3') return ['A', 'B', 'C'];
+    return ['A', 'B', 'C', 'D'];
+  }
+
+  // ====== STORAGE ======
   function loadStorage() {
     try {
       var saved = localStorage.getItem('marcadorFutbolData');
@@ -210,67 +317,7 @@
     } catch (e) {}
   }
 
-  function beep(freq, dur) {
-    try {
-      var Ctx = window.AudioContext || window.webkitAudioContext;
-      var ctx = new Ctx();
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.frequency.value = freq;
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      gain.gain.value = 0.2;
-      osc.start();
-      setTimeout(function () { osc.stop(); ctx.close(); }, dur);
-    } catch (e) {}
-  }
-
-  function whistleTone(duration, f1, f2) {
-    try {
-      var Ctx = window.AudioContext || window.webkitAudioContext;
-      var ctx = new Ctx();
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(f1, ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(f2, ctx.currentTime + duration / 1000);
-      gain.gain.value = 0.25;
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start();
-      setTimeout(function () { osc.stop(); ctx.close(); }, duration);
-    } catch (e) {}
-  }
-  function whistleShort() { whistleTone(180, 1900, 2500); }
-  function whistleLong() { whistleTone(700, 1800, 2900); }
-
-  function startWarningFlash() {
-    if (flashInterval) return;
-    var on = false;
-    var el = document.getElementById('flashOverlay');
-    flashInterval = setInterval(function () {
-      on = !on;
-      el.className = on ? 'on' : '';
-    }, 300);
-  }
-  function stopWarningFlash() {
-    if (flashInterval) { clearInterval(flashInterval); flashInterval = null; }
-    document.getElementById('flashOverlay').className = '';
-  }
-
-  function pad(n) { return n < 10 ? '0' + n : '' + n; }
-  function formatTime(s) {
-    if (s < 0) s = 0;
-    var m = Math.floor(s / 60);
-    var sec = s % 60;
-    return pad(m) + ':' + pad(sec);
-  }
-
-  function keysForMode(m) {
-    if (m === '2') return ['A', 'B'];
-    if (m === '3') return ['A', 'B', 'C'];
-    return ['A', 'B', 'C', 'D'];
-  }
-
+  // ====== RENDER ======
   function renderNames() {
     document.getElementById('nameLeft').textContent = teamNames[playingLeft];
     document.getElementById('nameRight').textContent = teamNames[playingRight];
@@ -285,16 +332,15 @@
       document.getElementById('waitingLabel').textContent = 'Espera: ' + names.join(', ');
     }
   }
-
   function renderScores() {
     document.getElementById('scoreLeft').textContent = scoreLeft;
     document.getElementById('scoreRight').textContent = scoreRight;
   }
-
   function renderTimer() {
     document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
   }
 
+  // ====== MODO ======
   function setMode(m) {
     mode = m;
     var keys = keysForMode(mode);
@@ -302,67 +348,60 @@
     playingRight = keys[1];
     queue = keys.slice(2);
     scoreLeft = 0; scoreRight = 0;
-    stopInterval();
-    stopWarningFlash();
+    stopInterval(); stopWarningFlash();
     timerSeconds = (mode === '2') ? 0 : 600;
     document.getElementById('btnMode2').className = 'modeBtn' + (mode === '2' ? ' active' : '');
     document.getElementById('btnMode3').className = 'modeBtn' + (mode === '3' ? ' active' : '');
     document.getElementById('btnMode4').className = 'modeBtn' + (mode === '4' ? ' active' : '');
-    renderNames();
-    renderScores();
-    renderTimer();
+    renderNames(); renderScores(); renderTimer();
     setPauseButton(false);
     saveStorage();
   }
 
+  // ====== TIMER ======
   function setPauseButton(isRunning) {
     running = isRunning;
     var btn = document.getElementById('btnPause');
     if (running) { btn.textContent = 'Pausar'; btn.className = 'ctrlBtn running'; }
     else { btn.textContent = 'Iniciar'; btn.className = 'ctrlBtn paused'; }
   }
-
   function togglePause() {
     if (running) { stopInterval(); setPauseButton(false); stopWarningFlash(); }
     else { startInterval(); setPauseButton(true); }
   }
-
   function startInterval() { stopInterval(); timerInterval = setInterval(tick, 1000); }
   function stopInterval() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
 
   function tick() {
-    if (mode === '2') { timerSeconds++; }
-    else {
+    if (mode === '2') {
+      timerSeconds++;
+      if (timerSeconds % 60 === 0 && timerSeconds > 0) whistleShort();
+    } else {
       timerSeconds--;
       if (timerSeconds <= 0) {
         timerSeconds = 0;
-        stopInterval();
-        setPauseButton(false);
-        renderTimer();
-        stopWarningFlash();
-        whistleLong();
+        stopInterval(); setPauseButton(false); renderTimer();
+        stopWarningFlash(); whistleLong();
         setTimeout(handleTimeUp, 750);
         return;
       }
-      if (timerSeconds <= 10) {
-        startWarningFlash();
-        whistleShort();
-      } else {
-        stopWarningFlash();
-      }
+      if (timerSeconds <= 10) { startWarningFlash(); whistleShort(); }
+      else { stopWarningFlash(); }
     }
     renderTimer();
   }
 
   function resetTime() {
-    stopInterval();
-    setPauseButton(false);
-    stopWarningFlash();
+    stopInterval(); setPauseButton(false); stopWarningFlash();
     timerSeconds = (mode === '2') ? 0 : 600;
     renderTimer();
   }
 
+  // ====== GOLES ======
   function addGoal(side, delta) {
+    if (document.getElementById('overlay').classList.contains('show')) return;
+    if (document.getElementById('settingsPanel').classList.contains('show')) return;
+    if (document.getElementById('scorerPanel').classList.contains('show')) return;
     if (delta === undefined) delta = 1;
     if (side === 'left') scoreLeft = Math.max(0, scoreLeft + delta);
     else scoreRight = Math.max(0, scoreRight + delta);
@@ -374,20 +413,83 @@
     if (scoreRight >= threshold) return showRoundWinOverlay('right');
   }
 
+  // ====== GOLEADOR (registra en stats) ======
+  function openScorer(side) {
+    if (document.getElementById('overlay').classList.contains('show')) return;
+    if (document.getElementById('settingsPanel').classList.contains('show')) return;
+    var teamKey = (side === 'left') ? playingLeft : playingRight;
+    var teamName = teamNames[teamKey];
+    var players = loadPlayers();
+    // Filtrar por equipo actual (o mostrar todos si no hay asignación)
+    var teamPlayers = players.filter(function(p){ return p.team === teamKey || p.team === teamName || !p.team; });
+    document.getElementById('scorerTitle').textContent = '⚽ Gol de ' + teamName + ' ¿quién?';
+    var list = document.getElementById('scorerList');
+    list.innerHTML = '';
+    if (teamPlayers.length === 0) {
+      list.innerHTML = '<div style="color:#aaa;font-size:15px;padding:20px;">No hay jugadores. Ve a 📊 Jugadores para agregarlos.</div>';
+    } else {
+      teamPlayers.forEach(function(p){
+        var chip = document.createElement('div');
+        chip.className = 'scorerChip';
+        chip.innerHTML = '<span class="num">#' + p.number + '</span>' + p.name;
+        chip.onclick = function(){ registerGoal(p.id, side); closeScorer(); };
+        list.appendChild(chip);
+      });
+    }
+    document.getElementById('scorerPanel').className = 'show';
+  }
+  function closeScorer() {
+    document.getElementById('scorerPanel').className = '';
+  }
+  function registerGoal(playerId, side) {
+    var players = loadPlayers();
+    var p = players.find(function(x){ return x.id === playerId; });
+    if (!p) return;
+    // Registrar gol en el marcador
+    addGoal(side);
+    // Registrar en historial
+    var history = loadGoalHistory();
+    history.push({
+      playerId: playerId,
+      playerName: p.name,
+      playerNumber: p.number,
+      team: p.team || '',
+      date: new Date().toISOString(),
+      side: side
+    });
+    saveGoalHistory(history);
+    beep(1200, 200);
+  }
+
+  // ====== STORAGE COMPARTIDO CON stats.html ======
+  function loadPlayers() {
+    try {
+      var raw = localStorage.getItem('marcadorPlayers');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function loadGoalHistory() {
+    try {
+      var raw = localStorage.getItem('marcadorGoalsHistory');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function saveGoalHistory(h) {
+    try { localStorage.setItem('marcadorGoalsHistory', JSON.stringify(h)); } catch (e) {}
+  }
+
+  // ====== OVERLAY ======
   function hideOverlay() { document.getElementById('overlay').className = ''; }
 
   function showRoundWinOverlay(side) {
-    stopInterval();
-    setPauseButton(false);
-    stopWarningFlash();
+    stopInterval(); setPauseButton(false); stopWarningFlash();
     var winnerName = side === 'left' ? teamNames[playingLeft] : teamNames[playingRight];
     document.getElementById('overlayTitle').textContent = winnerName + ' GANA';
     var sub = 'Toca para el siguiente minipartido';
-    if (mode !== '2' && queue.length > 0) {
-      sub = 'Entra: ' + teamNames[queue[0]];
-    }
+    if (mode !== '2' && queue.length > 0) sub = 'Entra: ' + teamNames[queue[0]];
     document.getElementById('overlaySub').textContent = sub;
-    document.getElementById('overlayButtons').innerHTML = '<button class="overlayBtn" onclick="confirmNextRound(\'' + side + '\')">Continuar</button>';
+    document.getElementById('overlayButtons').innerHTML =
+      '<button class="overlayBtn" onclick="confirmNextRound(\'' + side + '\')">Continuar</button>';
     document.getElementById('overlay').className = 'show';
   }
 
@@ -405,14 +507,12 @@
     var enteringKey = queue.shift();
     if (loserSide === 'left') playingLeft = enteringKey; else playingRight = enteringKey;
     scoreLeft = 0; scoreRight = 0;
-    timerSeconds = 600;
+    timerSeconds = (mode === '2') ? 0 : 600;
   }
 
   function doubleSwapAndApply() {
-    queue.push(playingLeft);
-    queue.push(playingRight);
-    playingLeft = queue.shift();
-    playingRight = queue.shift();
+    queue.push(playingLeft); queue.push(playingRight);
+    playingLeft = queue.shift(); playingRight = queue.shift();
     scoreLeft = 0; scoreRight = 0;
     timerSeconds = 600;
   }
@@ -420,15 +520,32 @@
   function handleTimeUp() {
     if (scoreLeft !== scoreRight) {
       var winnerSide = scoreLeft > scoreRight ? 'left' : 'right';
-      showRoundWinOverlay(winnerSide);
+      showRoundWinOverlay(winnerSide); return;
+    }
+    if (mode === '2') {
+      document.getElementById('overlayTitle').textContent = 'EMPATE ' + scoreLeft + '-' + scoreRight;
+      document.getElementById('overlaySub').textContent = 'Toca para continuar';
+      document.getElementById('overlayButtons').innerHTML =
+        '<button class="overlayBtn" onclick="hideOverlay()">Continuar</button>';
+      document.getElementById('overlay').className = 'show';
       return;
     }
     if (mode === '3') { startCoinFlip(); return; }
     if (mode === '4') { startDoubleSwapPrompt(); return; }
   }
 
+  // ====== SORTEO MONEDA (CORREGIDO) ======
+  function fairCoinFlip() {
+    if (window.crypto && window.crypto.getRandomValues) {
+      var arr = new Uint32Array(1);
+      window.crypto.getRandomValues(arr);
+      return (arr[0] % 2 === 0) ? 'cara' : 'sello';
+    }
+    return Math.random() < 0.5 ? 'cara' : 'sello';
+  }
+
   function startCoinFlip() {
-    coinCallerSide = null; coinCallerFace = null;
+    coinCallerSide = null; coinCallerFace = null; coinFlipping = false;
     document.getElementById('overlayTitle').textContent = 'EMPATE ' + scoreLeft + '-' + scoreRight;
     document.getElementById('overlaySub').textContent = 'Sorteo con moneda. ¿Qué equipo elige cara o sello?';
     document.getElementById('overlayButtons').innerHTML =
@@ -445,28 +562,40 @@
       '<button class="overlayBtn coin" onclick="coinChooseFace(\'sello\')">SELLO</button>';
   }
   function coinChooseFace(face) {
+    if (coinFlipping) return;
+    coinFlipping = true;
     coinCallerFace = face;
     document.getElementById('overlaySub').textContent = 'Lanzando la moneda...';
     document.getElementById('overlayButtons').innerHTML = '';
-    setTimeout(doCoinFlip, 900);
+    setTimeout(function(){ doCoinFlip(); coinFlipping = false; }, 900);
   }
   function doCoinFlip() {
-    var result = Math.random() < 0.5 ? 'cara' : 'sello';
+    var result = fairCoinFlip();
     var callerWins = (result === coinCallerFace);
     pendingWinnerSide = callerWins ? coinCallerSide : (coinCallerSide === 'left' ? 'right' : 'left');
     beep(660, 200);
     document.getElementById('overlayTitle').textContent = 'Salió: ' + result.toUpperCase();
     var winnerName = pendingWinnerSide === 'left' ? teamNames[playingLeft] : teamNames[playingRight];
     document.getElementById('overlaySub').textContent = winnerName + ' se queda';
-    document.getElementById('overlayButtons').innerHTML = '<button class="overlayBtn" onclick="confirmNextRound(pendingWinnerSide)">Continuar</button>';
+    document.getElementById('overlayButtons').innerHTML =
+      '<button class="overlayBtn" onclick="confirmNextRound(\'' + pendingWinnerSide + '\')">Continuar</button>';
   }
 
   function startDoubleSwapPrompt() {
-    var enter1 = queue[0] ? teamNames[queue[0]] : '';
-    var enter2 = queue[1] ? teamNames[queue[1]] : '';
+    if (queue.length < 2) {
+      document.getElementById('overlayTitle').textContent = 'EMPATE ' + scoreLeft + '-' + scoreRight;
+      document.getElementById('overlaySub').textContent = 'Configuración incompleta';
+      document.getElementById('overlayButtons').innerHTML =
+        '<button class="overlayBtn" onclick="hideOverlay()">Cerrar</button>';
+      document.getElementById('overlay').className = 'show';
+      return;
+    }
+    var enter1 = teamNames[queue[0]];
+    var enter2 = teamNames[queue[1]];
     document.getElementById('overlayTitle').textContent = 'EMPATE ' + scoreLeft + '-' + scoreRight;
     document.getElementById('overlaySub').textContent = 'Salen ambos equipos. Entran: ' + enter1 + ' y ' + enter2;
-    document.getElementById('overlayButtons').innerHTML = '<button class="overlayBtn" onclick="confirmDoubleSwap()">Continuar</button>';
+    document.getElementById('overlayButtons').innerHTML =
+      '<button class="overlayBtn" onclick="confirmDoubleSwap()">Continuar</button>';
     document.getElementById('overlay').className = 'show';
   }
   function confirmDoubleSwap() {
@@ -475,6 +604,7 @@
     renderNames(); renderScores(); renderTimer(); setPauseButton(false);
   }
 
+  // ====== SETTINGS ======
   function openSettings() {
     document.getElementById('inputA').value = teamNames.A;
     document.getElementById('inputB').value = teamNames.B;
@@ -488,10 +618,24 @@
     teamNames.C = document.getElementById('inputC').value || teamNames.C;
     teamNames.D = document.getElementById('inputD').value || teamNames.D;
     document.getElementById('settingsPanel').className = '';
-    renderNames();
-    saveStorage();
+    renderNames(); saveStorage();
   }
 
+  // ====== TECLADO ======
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      hideOverlay();
+      document.getElementById('settingsPanel').className = '';
+      closeScorer();
+    }
+    if (e.key === ' ' && !document.getElementById('overlay').classList.contains('show')
+        && !document.getElementById('scorerPanel').classList.contains('show')) {
+      e.preventDefault();
+      togglePause();
+    }
+  });
+
+  // ====== INIT ======
   loadStorage();
   setMode(mode);
 </script>
